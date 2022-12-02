@@ -1,7 +1,7 @@
 import logger from '../../services/logger';
 import { sequelize } from '../../models/sql/sequelize';
 
-import { AI_URL, CHAIN_SC_MAP, INTERNAL_SERVER_ERROR, LEGAL_AGE } from '../../constants';
+import { AI_URL, CHAIN_SC_MAP, INTERNAL_SERVER_ERROR, LEGAL_AGE, SANCTIONED_COUNTRIES } from '../../constants';
 import {
   createFailureResponse,
   createSuccessResponse,
@@ -73,6 +73,10 @@ class UserService {
       if (!(response && response.status === 200 && response.data.birthyear)) {
         return createFailureResponse(500, INTERNAL_SERVER_ERROR);
       }
+      const country = (response.data.country);
+      if (SANCTIONED_COUNTRIES.includes(country)) {
+        return createFailureResponse(400, `You are in one of the sanctioned countries`);
+      }
       const birthyear = Number(response.data.birthyear);
       const age = new Date().getFullYear() - birthyear;
       if (age < LEGAL_AGE) {
@@ -128,20 +132,6 @@ class UserService {
     if (!user) {
       return createFailureResponse(400, `User with wallet address ${walletAddress} not found`);
     }
-    await this.queueService.enqueueTypedMessage<QueueMessage>(
-      walletAddress,
-      QUEUE_GROUPS.BASHER,
-      'basher',
-      {
-        callType: 'gen-proof',
-        inputData: JSON.stringify({
-          age: 19,
-          ageLimit: 18,
-        }),
-        ts: Date.now(),
-        walletAddress
-      }
-    );
     return createSuccessResponse(user);
   }
 
@@ -174,14 +164,15 @@ class UserService {
         consent: false
       });
       await sendNotification({
-        title: `A requestor is asking for your consent!`,
-        body: `Requestor ${requestorWalletAddress} is seeking your consent to verify KYC details given by you.`,
+        title: `A requestor is asking for your consent <${consentEntry.id}>!`,
+        body: `Binance (${requestorWalletAddress}) is asking for additional information. Approve now!`,
         cta: `https://api.app.knowallet.xyz/users/consent/${userWalletAddress}/${consentEntry.id}/true`,
         img: ''
       })
       fn({success:false, errMsg: 'User has not given the consent yet to verify their KYC details'});
       return;
     }
+    logger.info('calling verifyCalldata...')
     this.verifyCalldata({userWalletAddress, chain, contractAddress}, fn);
   }
 
@@ -213,24 +204,32 @@ class UserService {
 
   private verifyCalldata({userWalletAddress, chain, contractAddress}: {userWalletAddress: string, chain: string, contractAddress: string}, fn: (data: VerifyUserResponse) => void) {
     console.log(userWalletAddress);
+    logger.info("ankit0");
     // @ts-ignore
     this.userRepository.findOne({
       where: {
         walletAddress: userWalletAddress
       }
     }).then( walletEntry => {
+      logger.info("ankit1");
       if (!walletEntry || !(walletEntry.calldata) || walletEntry.calldata.length === 0) {
         console.log('could not find the address');
+        logger.info("ankit2");
         fn({success:false, errMsg: 'Could not find the address'});
       } else {
+        logger.info("ankit2");
         const calldata = walletEntry.calldata;
         const indexComma = calldata.indexOf(",");
         const bytesCalldata = calldata.substring(0, indexComma);
         const arrCalldata = calldata.substring(indexComma + 1);
         const verifyCalldataScript = spawn('bash', ['/home/ubuntu/workspace/hawkeye/api/zk-age-constraint/scripts/verify_calldata.sh', chain, bytesCalldata, arrCalldata, contractAddress]);
         verifyCalldataScript.stdout.on('data', (data) => {
+          logger.info("ankit3");
+          logger.info("data");
           const success = (String(data.toString()).trim()) === 'true';
+          logger.info(success);
           if (success) {
+            logger.info("ankit4");
             fn({
               success,
               calldata,
@@ -238,6 +237,7 @@ class UserService {
               contractAddress
             })
           } else {
+            logger.info("ankit5");
             fn({success})
           }
         });

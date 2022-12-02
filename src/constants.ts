@@ -10,9 +10,9 @@ export const INTERNAL_SERVER_ERROR = 'Internal Server Error';
 
 export const AI_URL = 'http://3.111.71.221:5000';
 export const LEGAL_AGE = 18;
-
+export const SANCTIONED_COUNTRIES = ['GBR1', 'PRK', 'SYR', 'SOM', 'AFG'];
 export const CHAIN_SC_MAP = new Map([
-  ['matic', '0xf62e08643635C0e0755CE5A894fDaEEEF72f8F00'],
-  ['gnosis', '0x68Ae0c495D749Ee5B69Fb4E98366714386f80f77'],
-  ['shardeum', '0x68Ae0c495D749Ee5B69Fb4E98366714386f80f77'],
+  ['matic', '0xA0e4586e635353374afB049d25d47Ea165E3Dac0'],
+  ['gnosis', '0xbc57497e3fea153c938F813DaBE32c5228a5c81E'],
+  ['shardeum', '0xbc57497e3fea153c938F813DaBE32c5228a5c81E'],
 ]);
