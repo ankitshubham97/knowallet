@@ -1,7 +1,7 @@
 import logger from '../../services/logger';
 import { sequelize } from '../../models/sql/sequelize';
 
-import { AI_URL, CHAIN_SC_MAP_AGE, CHAIN_SC_MAP_COUNTRY, INTERNAL_SERVER_ERROR, LEGAL_AGE, SANCTIONED_COUNTRIES } from '../../constants';
+import { AI_URL, CHAIN_SC_MAP_AGE, CHAIN_SC_MAP_COUNTRY, INTERNAL_SERVER_ERROR, LEGAL_AGE, REVISE_COLLECTION_ID, SANCTIONED_COUNTRIES } from '../../constants';
 import {
   createFailureResponse,
   createSuccessResponse,
@@ -19,11 +19,14 @@ import QueueMessage from '../../interfaces/queueMessage.interface';
 import Consent from '../../models/sql/consent.model';
 import { sendNotification } from '../../utils/sendPush';
 // import { uploadToIpfs } from '../../utils/secureIpfs';
+import {Revise} from 'revise-sdk';
+
 
 class UserService {
   public userRepository = sequelize.getRepository(User);
   public consentRepository = sequelize.getRepository(Consent);
   public queueService: Queue = new AWSQueue();
+  public revise = new Revise({auth: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6ImRhNThkYzI3LTY0MjItNGViZS05N2I0LWQ2YTc5NTRlN2JmNCIsImtleSI6ImluZ2F6cnNkIiwiaWF0IjoxNjcwMDgyNDU0fQ.wORhUg6WeVRcXUjYZAF0bWGnjtsisteNS6zFxzvXP5s"});
   
   public async updateUser({ payload }: { payload: any }) {
     try {
@@ -53,6 +56,26 @@ class UserService {
       } else {
         return createFailureResponse(500, INTERNAL_SERVER_ERROR);
       }
+      const user = await this.userRepository.findOne ({
+        where: {
+          walletAddress: payload.walletAddress
+        }
+      });
+      if (user && user.proofAge && user.proofCountry) {
+        //https://app.revise.network/revisions/8d64c152-9e47-44b9-86a6-af21e02d0315
+        const pet = await this.revise.fetchNFT(user?.nftUrl?.split('https://app.revise.network/revisions/')?.[1]);
+        this.revise.nft(pet)
+          .setProperty("status", "done")
+          .setImage("https://i.ibb.co/rFcrTLx/happy.png")
+          .save();
+        await sendNotification({
+          title: `✅ On-chain id token is verified!`,
+          body: `Verification is complete! Click to see it now!`,
+          cta: user.nftUrl,
+          img: "https://i.ibb.co/rFcrTLx/happy.png",
+          receiverAddress: payload.walletAddress
+        });
+      }
       return createSuccessResponse(payload);
     } catch (e) {
       logger.error(e);
@@ -70,9 +93,27 @@ class UserService {
         }
       });
       if (!user) {
+        const nft = await this.revise.addNFT({
+          image: "https://i.ibb.co/9tQ2YTr/sad.png",
+          name: `On-chain Knowallet Id for ${walletAddress}`,
+          tokenId: `${Date.now()}`,
+          description: `This NFT serves as on-chain id token for ${walletAddress} powered by Knowallet!`,
+        },[
+          {status: "pending"}
+        ], REVISE_COLLECTION_ID);
+        console.log(nft.id)
+        console.log(`https://app.revise.network/revisions/${nft.id}`)
         // @ts-ignore
         await this.userRepository.create ({
           walletAddress,
+          nftUrl: `https://app.revise.network/revisions/${nft.id}`
+        });
+        await sendNotification({
+          title: `❓ On-chain id token is added but not verified!`,
+          body: `Verification is pending! Complete it soon! In the meanwhile, click me to see the Knowallet id token!`,
+          cta: `https://app.revise.network/revisions/${nft.id}`,
+          img: "https://i.ibb.co/9tQ2YTr/sad.png",
+          receiverAddress: walletAddress
         });
       }
       

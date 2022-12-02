@@ -24,6 +24,9 @@ class User extends Model<User> {
   calldataCountry!: string;
 
   @Column
+  nftUrl!: string;
+
+  @Column
   @CreatedAt
   createdAt!: Date;
 

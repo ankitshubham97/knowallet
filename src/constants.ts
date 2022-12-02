@@ -25,3 +25,5 @@ export const CHAIN_SC_MAP_COUNTRY = new Map([
   ['cronos', '0x23278452a4847B5fc6dD23A49fc6Aa70F9226fBb'],
   ['moonbeam', '0xbc57497e3fea153c938F813DaBE32c5228a5c81E']
 ]);
+
+export const REVISE_COLLECTION_ID = "92280588-27bc-4c6d-8cfb-75583cf261ea";

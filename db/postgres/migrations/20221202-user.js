@@ -29,6 +29,10 @@ module.exports = {
         type: Sequelize.STRING(32768),
         allowNull: true,
       },
+      nftUrl: {
+        type: Sequelize.STRING,
+        allowNull: true,
+      },
       createdAt: {
         allowNull: false,
         type: Sequelize.DATE,
