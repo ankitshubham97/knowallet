@@ -9,36 +9,36 @@ import {
 import CreateOrUpdateUserDto from './dto/createOrUpdateUser.dto';
 import User from '../../models/sql/user.model';
 import { spawn } from 'node:child_process';
+import axios from 'axios';
 
 class UserService {
   public userRepository = sequelize.getRepository(User);
 
   public async createOrUpdateUser({ payload }: { payload: CreateOrUpdateUserDto }) {
     try {
-      const { walletAddress } = payload;
+      const { walletAddress, passportBase64String, selfieBase64String } = payload;
       console.log(walletAddress);
 
       // Call mrz to extract age.
-      const mrzScript = spawn('python3', ['python/mrz.py']);
-      mrzScript.stdout.on('data', (data) => {
+      const mrzScript = spawn('python3', ['python/mrz.py', passportBase64String]);
+      mrzScript.stdout.on('data', async (data) => {
+        // TODO(ankit): Put check on data being an year.
         console.log((data.toString()));
-        const deepfaceScript = spawn('python3', ['python/face.py']);
-        deepfaceScript.stdout.on('data', (data1) => {
-          const result = String(data1.toString());
-          if (result.length > 5) {
-            return
-          }
-          console.log('faces verified:', result);
+        
+        var config = {
+          method: 'post',
+          url: 'http://ec2-13-233-6-217.ap-south-1.compute.amazonaws.com:5000/face',
+          headers: { 
+            'Content-Type': 'application/json'
+          },
+          data : JSON.stringify({"img1": passportBase64String, "img2": selfieBase64String})
+        };
+
+        const success = (await axios(config)).data.success ?? false;
+        if (success) {
           this.generateProofAndPersist({walletAddress});
           this.generateCalldataAndPersist({walletAddress});
-        });
-        deepfaceScript.stderr.on('data', (data) => {
-          console.log((data.toString()));
-        });
-        deepfaceScript.on('exit', (code) => {
-          console.log("Process quit with code : " + code);
-        });
-
+        }
       });
       mrzScript.stderr.on('data', (data) => {
         console.log((data.toString()));
@@ -66,7 +66,6 @@ class UserService {
     }
     return createSuccessResponse(user);
   }
-
 
   private generateProofAndPersist({walletAddress}: {walletAddress: string}) {
     const genProofScript = spawn('bash', ['/home/ubuntu/workspace/api/zk-age-constraint/scripts/generate_proof.sh']);

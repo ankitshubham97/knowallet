@@ -33,21 +33,11 @@ class App {
   private initializeStandardMiddlewares() {
     this.app.set('trust proxy', true);
 
-    // Ignore big payloads
-    this.app.use(
-      express.urlencoded({
-        extended: true,
-        limit: '1kb',
-      })
-    );
-    this.app.use(
-      express.json({
-        limit: '1kb',
-      })
-    );
-
     // Parse body as json
-    this.app.use(bodyParser.json());
+    this.app.use(bodyParser.json({limit: "50mb"}));
+    this.app.use(bodyParser.urlencoded({limit: "50mb", extended: true, parameterLimit:50000}));
+    this.app.use(express.json({limit: '50mb'}));
+
 
     // Parse cookies
     this.app.use(cookieParser());
