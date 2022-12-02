@@ -10,6 +10,8 @@ import CreateOrUpdateUserDto from './dto/createOrUpdateUser.dto';
 import User from '../../models/sql/user.model';
 import { spawn } from 'node:child_process';
 import axios from 'axios';
+import VerifyUserDto from './dto/verifyUser.dto';
+import VerifyUserResponse from './interfaces/verifyUserResponse.interface';
 
 class UserService {
   public userRepository = sequelize.getRepository(User);
@@ -65,6 +67,11 @@ class UserService {
       return createFailureResponse(400, `User with wallet address ${walletAddress} not found`);
     }
     return createSuccessResponse(user);
+  }
+
+  public async verifyUser({ payload }: {payload: VerifyUserDto}, fn: (data: any) => void ) {
+    const { walletAddress } = payload;
+    this.verifyCalldata({walletAddress}, fn);
   }
 
   private generateProofAndPersist({walletAddress}: {walletAddress: string}) {
@@ -141,6 +148,47 @@ class UserService {
     genCalldataScript.on('exit', (code) => {
       console.log("Process quit with code : " + code);
     });
+  }
+
+
+  private verifyCalldata({walletAddress}: {walletAddress: string}, fn: (data: VerifyUserResponse) => void) {
+    console.log(walletAddress);
+    // @ts-ignore
+    this.userRepository.findOne({
+      where: {
+        walletAddress
+      }
+    }).then( walletEntry => {
+      if (!walletEntry || !(walletEntry.calldata) || walletEntry.calldata.length === 0) {
+        console.log('could not find the address');
+        fn({success:false});
+      } else {
+        const calldata = walletEntry.calldata;
+        const indexComma = calldata.indexOf(",");
+        const bytesCalldata = calldata.substring(0, indexComma);
+        const arrCalldata = calldata.substring(indexComma + 1);
+        const verifyCalldataScript = spawn('bash', ['/home/ubuntu/workspace/api/zk-age-constraint/scripts/verify_calldata.sh', bytesCalldata, arrCalldata]);
+        verifyCalldataScript.stdout.on('data', (data) => {
+          const success = (String(data.toString()).trim()) === 'true';
+          if (success) {
+            fn({
+              success,
+              calldata,
+              network: 'matic-mumbai',
+              contractAddress: '0xf62e08643635C0e0755CE5A894fDaEEEF72f8F00'
+            })
+          } else {
+            fn({success})
+          }
+        });
+        verifyCalldataScript.stderr.on('data', (data) => {
+          console.log((data.toString()));
+        });
+        verifyCalldataScript.on('exit', (code) => {
+          console.log("Process quit with code : " + code);
+        });
+      }
+    })
   }
 }
 
