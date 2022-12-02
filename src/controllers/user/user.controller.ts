@@ -22,6 +22,7 @@ class UserController implements Controller {
     this.router.post(`/users/verify`, this.verifyUser);
     // TODO(ankit): Put a worker auth middleware.
     this.router.put(`/users/worker`, this.updateUserViaWorker);
+    this.router.get(`/users/consent/:userWalletAddress/:consentId/:value`, this.handleConsent);
     this.router.delete(`/users`, () => undefined);
   }
 
@@ -32,7 +33,6 @@ class UserController implements Controller {
     const payload = request.body as CreateOrUpdateUserDto;
     response.send(await this.userService.createUser({ payload }));
   };
-
 
   private updateUserViaWorker = async (
     request: express.Request,
@@ -57,17 +57,23 @@ class UserController implements Controller {
   ) => {
     const payload = request.body as VerifyUserDto;
     let callbackFunction = (data : VerifyUserResponse) => {
-      console.log("-------")
-
-      console.log("-------")
       if (data.success) {
         return response.send(createSuccessResponse(data));
       }
-      return response.send(createFailureResponse(404, `Failed verification for address ${payload.walletAddress}`));
+      return response.send(createFailureResponse(404, `Failed verification for address ${payload.userWalletAddress}: ${data.errMsg}`));
     }
     this.userService.verifyUser({ payload }, callbackFunction);
     // response.send(await this.userService.verifyUser({ payload }));
   };
+
+  private handleConsent = async (
+    request: express.Request,
+    response: express.Response
+  ) => {
+    const { userWalletAddress, consentId, value } = request.params;
+    response.send(await this.userService.handleConsent({ userWalletAddress, consentId, value }));
+  };
+
 }
 
 export default UserController;

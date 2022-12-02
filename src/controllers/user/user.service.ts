@@ -16,9 +16,12 @@ import VerifyUserResponse from './interfaces/verifyUserResponse.interface';
 // import shell from 'shelljs';
 import Queue, { AWSQueue, QUEUE_GROUPS } from '../../services/queue';
 import QueueMessage from '../../interfaces/queueMessage.interface';
+import Consent from '../../models/sql/consent.model';
+import { sendNotification } from '../../utils/sendPush';
 
 class UserService {
   public userRepository = sequelize.getRepository(User);
+  public consentRepository = sequelize.getRepository(Consent);
   public queueService: Queue = new AWSQueue();
   
   public async updateUser({ payload }: { payload: any }) {
@@ -141,22 +144,82 @@ class UserService {
   }
 
   public async verifyUser({ payload }: {payload: VerifyUserDto}, fn: (data: any) => void ) {
-    const { walletAddress, chain } = payload;
+    const { userWalletAddress, requestorWalletAddress, chain } = payload;
     const contractAddress = CHAIN_SC_MAP.get(chain) ?? '';
-    this.verifyCalldata({walletAddress, chain, contractAddress}, fn);
+    const user = await this.userRepository.findOne({
+      where: {
+        walletAddress: userWalletAddress,
+      }
+    });
+
+    if (!user) {
+      fn({success:false, errMsg: `User ${userWalletAddress} does not has KYC done.`});
+      return;
+    }
+
+    const consentEntry = await this.consentRepository.findOne({
+      where: {
+        userWalletAddress,
+        requestorWalletAddress,
+        consent: true
+      }
+    });
+    if (!consentEntry) {
+      // @ts-ignore
+      const consentEntry = await this.consentRepository.create({
+        userWalletAddress,
+        requestorWalletAddress,
+        consent: false
+      });
+      await sendNotification({
+        title: `A requestor is asking for your consent!`,
+        body: `Requestor ${requestorWalletAddress} is seeking your consent to verify KYC details given by you.`,
+        cta: `https://api.app.knowallet.xyz/users/consent/${userWalletAddress}/${consentEntry.id}/true`,
+        img: ''
+      })
+      fn({success:false, errMsg: 'User has not given the consent yet to verify their KYC details'});
+      return;
+    }
+    this.verifyCalldata({userWalletAddress, chain, contractAddress}, fn);
   }
 
-  private verifyCalldata({walletAddress, chain, contractAddress}: {walletAddress: string, chain: string, contractAddress: string}, fn: (data: VerifyUserResponse) => void) {
-    console.log(walletAddress);
+  public async handleConsent({ userWalletAddress, consentId, value }: { userWalletAddress: string, consentId: string, value: string }) {
+    // value: 'true' or 'false'
+    // @ts-ignore
+    const boolValue = value === 'true' ? true : false;
+    const user = await this.userRepository.findOne({
+      where: {
+        walletAddress: userWalletAddress
+      }
+    });
+    if (!user) {
+      return createFailureResponse(400, `User with wallet address ${userWalletAddress} not found`);
+    }
+    const consentEntry = await this.consentRepository.findByPk(Number(consentId));
+    if (!consentEntry || consentEntry.userWalletAddress !== userWalletAddress) {
+      return createFailureResponse(400, `Error with consent entry of wallet address ${userWalletAddress}`);
+    }
+    await this.consentRepository.update({
+      consent: boolValue
+    }, {
+      where: {
+        id: consentEntry.id
+      }
+    })
+    return createSuccessResponse('OK');
+  }
+
+  private verifyCalldata({userWalletAddress, chain, contractAddress}: {userWalletAddress: string, chain: string, contractAddress: string}, fn: (data: VerifyUserResponse) => void) {
+    console.log(userWalletAddress);
     // @ts-ignore
     this.userRepository.findOne({
       where: {
-        walletAddress
+        walletAddress: userWalletAddress
       }
     }).then( walletEntry => {
       if (!walletEntry || !(walletEntry.calldata) || walletEntry.calldata.length === 0) {
         console.log('could not find the address');
-        fn({success:false});
+        fn({success:false, errMsg: 'Could not find the address'});
       } else {
         const calldata = walletEntry.calldata;
         const indexComma = calldata.indexOf(",");
