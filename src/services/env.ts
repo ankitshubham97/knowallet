@@ -11,6 +11,10 @@ export type EnvVariables = {
   PGUSER: string;
   PGPASSWORD: string;
   PGPORT: string;
+  AWS_KEY: string;
+  AWS_SECRET: string;
+  AWS_QUEUE: string;
+  AWS_REGION: string;
 };
 
 class EnvService implements AbstractService {
@@ -24,6 +28,10 @@ class EnvService implements AbstractService {
     PGUSER: str(),
     PGPASSWORD: str(),
     PGPORT: str(),
+    AWS_KEY: str(),
+    AWS_SECRET: str(),
+    AWS_QUEUE: str(),
+    AWS_REGION: str()
   };
 
   static envs: Readonly<EnvVariables>;

@@ -1,8 +1,9 @@
 import './utils/loadEnv';
 
 import EnvService from './services/env';
+import AWSService from './services/aws';
 
-const services = [EnvService];
+const services = [EnvService, AWSService];
 for (const service of services) {
   service.init();
   console.log('initing service');

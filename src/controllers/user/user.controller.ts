@@ -5,6 +5,7 @@ import CreateOrUpdateUserDto from './dto/createOrUpdateUser.dto';
 import VerifyUserDto from './dto/verifyUser.dto';
 import UserService from './user.service';
 import VerifyUserResponse from './interfaces/verifyUserResponse.interface';
+import logger, { prettyJSON } from '../../services/logger';
 
 class UserController implements Controller {
   public router = express.Router();
@@ -17,18 +18,29 @@ class UserController implements Controller {
   private initializeRoutes() {
     this.router.get(`/users`, () => undefined);
     this.router.get(`/users/:walletAddress`, this.getUserByWalletAddress);
-    this.router.post(`/users`, this.createOrUpdateUser);
+    this.router.post(`/users`, this.createUser);
     this.router.post(`/users/verify`, this.verifyUser);
-    this.router.put(`/users`, () => undefined);
+    // TODO(ankit): Put a worker auth middleware.
+    this.router.put(`/users/worker`, this.updateUserViaWorker);
     this.router.delete(`/users`, () => undefined);
   }
 
-  private createOrUpdateUser = async (
+  private createUser = async (
     request: express.Request,
     response: express.Response
   ) => {
     const payload = request.body as CreateOrUpdateUserDto;
-    response.send(await this.userService.createOrUpdateUser({ payload }));
+    response.send(await this.userService.createUser({ payload }));
+  };
+
+
+  private updateUserViaWorker = async (
+    request: express.Request,
+    response: express.Response
+  ) => {
+    const payload = request.body;
+    logger.info(prettyJSON(payload));
+    response.send(await this.userService.updateUser({ payload }));
   };
 
   private getUserByWalletAddress = async (

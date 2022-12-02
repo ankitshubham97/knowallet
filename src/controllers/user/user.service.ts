@@ -12,15 +12,50 @@ import { spawn } from 'node:child_process';
 import axios from 'axios';
 import VerifyUserDto from './dto/verifyUser.dto';
 import VerifyUserResponse from './interfaces/verifyUserResponse.interface';
+// import util from 'node:util';
+// import shell from 'shelljs';
+import Queue, { AWSQueue, QUEUE_GROUPS } from '../../services/queue';
+import QueueMessage from '../../interfaces/queueMessage.interface';
 
 class UserService {
   public userRepository = sequelize.getRepository(User);
-
-  public async createOrUpdateUser({ payload }: { payload: CreateOrUpdateUserDto }) {
+  public queueService: Queue = new AWSQueue();
+  
+  public async updateUser({ payload }: { payload: any }) {
+    try {
+      // @ts-ignore
+      await this.userRepository.update({
+        proof: payload.proof ?? '',
+        calldata: payload.calldata ?? '',
+      },
+      {
+        where: {
+          walletAddress: payload.walletAddress ?? '',
+        },
+      });
+      return createSuccessResponse(payload);
+    } catch (e) {
+      logger.error(e);
+      return createFailureResponse(500, INTERNAL_SERVER_ERROR);
+    }
+  }
+  public async createUser({ payload }: { payload: CreateOrUpdateUserDto }) {
     try {
       const { walletAddress, passportBase64String, selfieBase64String } = payload;
-      console.log(walletAddress);
-
+      console.log(walletAddress, LEGAL_AGE, AI_URL);
+      // @ts-ignore
+      const user = await this.userRepository.findOne ({
+        where: {
+          walletAddress
+        }
+      });
+      if (!user) {
+        // @ts-ignore
+        await this.userRepository.create ({
+          walletAddress,
+        });
+      }
+      
       // Call mrz to extract age.
       let response = await axios({
         method: 'post',
@@ -35,10 +70,10 @@ class UserService {
         return createFailureResponse(500, INTERNAL_SERVER_ERROR);
       }
       const birthyear = Number(response.data.birthyear);
-      if (new Date().getFullYear() - birthyear < LEGAL_AGE) {
+      const age = new Date().getFullYear() - birthyear;
+      if (age < LEGAL_AGE) {
         return createFailureResponse(400, `You are below ${LEGAL_AGE}`);
       }
-      console.log("dbaqsfhbiasuhgb");
       response = await axios({
         method: 'post',
         url: `${AI_URL}/face`,
@@ -56,15 +91,28 @@ class UserService {
       if (!success) {
         return createFailureResponse(400, `Images from selfie and passport do not match`);
       }
-      // this.generateProofAndPersist({walletAddress});
-      // this.generateCalldataAndPersist({walletAddress});
+
+      await this.queueService.enqueueTypedMessage<QueueMessage>(
+        walletAddress,
+        QUEUE_GROUPS.BASHER,
+        'basher',
+        {
+          callType: 'gen-proof',
+          inputData: JSON.stringify({
+            age,
+            ageLimit: 18,
+          }),
+          ts: Date.now(),
+          walletAddress
+        }
+      );
       return createSuccessResponse('OK');
     } catch (e) {
       logger.error(e);
       return createFailureResponse(500, INTERNAL_SERVER_ERROR);
     }
   }
-  
+
   public async getUserByWalletAddress({ walletAddress }: { walletAddress: string }) {
     // @ts-ignore
     const user = await this.userRepository.findOne({
@@ -75,6 +123,20 @@ class UserService {
     if (!user) {
       return createFailureResponse(400, `User with wallet address ${walletAddress} not found`);
     }
+    await this.queueService.enqueueTypedMessage<QueueMessage>(
+      walletAddress,
+      QUEUE_GROUPS.BASHER,
+      'basher',
+      {
+        callType: 'gen-proof',
+        inputData: JSON.stringify({
+          age: 19,
+          ageLimit: 18,
+        }),
+        ts: Date.now(),
+        walletAddress
+      }
+    );
     return createSuccessResponse(user);
   }
 
@@ -83,83 +145,6 @@ class UserService {
     const contractAddress = CHAIN_SC_MAP.get(chain) ?? '';
     this.verifyCalldata({walletAddress, chain, contractAddress}, fn);
   }
-
-  // private generateProofAndPersist({walletAddress}: {walletAddress: string}) {
-  //   const genProofScript = spawn('bash', ['/home/ubuntu/workspace/hawkeye/api/zk-age-constraint/scripts/generate_proof.sh']);
-  //   genProofScript.stdout.on('data', (data) => {
-  //     const proof = String(data.toString()).trim();
-  //     console.log(proof, walletAddress);
-  //     // @ts-ignore
-  //     this.userRepository.findOne({
-  //       where: {
-  //         walletAddress
-  //       }
-  //     }).then( walletEntry => {
-  //       if (!walletEntry) {
-  //         // @ts-ignore
-  //         this.userRepository.create ({
-  //           walletAddress,
-  //           proof
-  //         });
-  //       } else {
-  //         // @ts-ignore
-  //         this.userRepository.update({
-  //           proof,
-  //         },
-  //         {
-  //           where: {
-  //             walletAddress
-  //           },
-  //         })
-  //       }
-  //     })
-  //   });
-  //   genProofScript.stderr.on('data', (data) => {
-  //     console.log((data.toString()));
-  //   });
-  //   genProofScript.on('exit', (code) => {
-  //     console.log("Process quit with code : " + code);
-  //   });
-  // }
-
-  // private generateCalldataAndPersist({walletAddress}: {walletAddress: string}) {
-  //   const genCalldataScript = spawn('bash', ['/home/ubuntu/workspace/hawkeye/api/zk-age-constraint/scripts/generate_calldata.sh']);
-  //   genCalldataScript.stdout.on('data', (data) => {
-  //     const calldata = String(data.toString()).trim();
-  //     console.log(calldata, walletAddress);
-  //     // @ts-ignore
-  //     this.userRepository.findOne({
-  //       where: {
-  //         walletAddress
-  //       }
-  //     }).then( walletEntry => {
-  //       if (!walletEntry) {
-  //         // @ts-ignore
-  //         this.userRepository.create ({
-  //           walletAddress,
-  //           calldata
-  //         });
-  //       } else {
-  //         // @ts-ignore
-  //         this.userRepository.update({
-  //           calldata,
-  //         },
-  //         {
-  //           where: {
-  //             walletAddress
-  //           },
-  //         })
-  //       }
-  //     })
-  //   });
-  //   genCalldataScript.stderr.on('data', (data) => {
-  //     console.log((data.toString()));
-  //   });
-  //   genCalldataScript.on('exit', (code) => {
-  //     console.log("Process quit with code : " + code);
-  //   });
-  // }
-
 
   private verifyCalldata({walletAddress, chain, contractAddress}: {walletAddress: string, chain: string, contractAddress: string}, fn: (data: VerifyUserResponse) => void) {
     console.log(walletAddress);
