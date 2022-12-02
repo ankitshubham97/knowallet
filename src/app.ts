@@ -54,7 +54,7 @@ class App {
 
     // Enable CORS
     this.app.use(
-      cors({ origin: ['http://localhost:3001', 'https://zk-ui.vercel.app'], credentials: true })
+      cors({ origin: ['http://localhost:3001','http://localhost:3000', 'https://zk-ui.vercel.app', 'https://bafybeiaia3xkqedbi55rhe5tsbr2au4gvbbx4ebgrjc3syty4lq77xpbya.ipfs.gateway.valist.io'], credentials: true })
     );
 
     // We have to ensure checks end-point is before logging
