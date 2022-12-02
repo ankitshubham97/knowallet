@@ -166,8 +166,9 @@ class UserService {
       await sendNotification({
         title: `A requestor is asking for your consent <${consentEntry.id}>!`,
         body: `Binance (${requestorWalletAddress}) is asking for additional information. Approve now!`,
-        cta: `https://api.app.knowallet.xyz/users/consent/${userWalletAddress}/${consentEntry.id}/true`,
-        img: ''
+        cta: `https://api.app.knowallet.xyz/users/consent/${userWalletAddress}/${requestorWalletAddress}/${consentEntry.id}/true`,
+        img: '',
+        receiverAddress: userWalletAddress
       })
       fn({success:false, errMsg: 'User has not given the consent yet to verify their KYC details'});
       return;
@@ -176,7 +177,7 @@ class UserService {
     this.verifyCalldata({userWalletAddress, chain, contractAddress}, fn);
   }
 
-  public async handleConsent({ userWalletAddress, consentId, value }: { userWalletAddress: string, consentId: string, value: string }) {
+  public async handleConsent({ userWalletAddress, requestorWalletAddress, consentId, value }: { userWalletAddress: string, requestorWalletAddress: string, consentId: string, value: string }) {
     // value: 'true' or 'false'
     // @ts-ignore
     const boolValue = value === 'true' ? true : false;
@@ -198,38 +199,39 @@ class UserService {
       where: {
         id: consentEntry.id
       }
+    });
+    await sendNotification({
+      title: `Consent obtained!`,
+      body: `${userWalletAddress} has given the consent to you to verify their KYC details!`,
+      cta: ``,
+      img: '',
+      receiverAddress: requestorWalletAddress
     })
     return createSuccessResponse('OK');
   }
 
   private verifyCalldata({userWalletAddress, chain, contractAddress}: {userWalletAddress: string, chain: string, contractAddress: string}, fn: (data: VerifyUserResponse) => void) {
     console.log(userWalletAddress);
-    logger.info("ankit0");
     // @ts-ignore
     this.userRepository.findOne({
       where: {
         walletAddress: userWalletAddress
       }
     }).then( walletEntry => {
-      logger.info("ankit1");
       if (!walletEntry || !(walletEntry.calldata) || walletEntry.calldata.length === 0) {
         console.log('could not find the address');
-        logger.info("ankit2");
         fn({success:false, errMsg: 'Could not find the address'});
       } else {
-        logger.info("ankit2");
         const calldata = walletEntry.calldata;
         const indexComma = calldata.indexOf(",");
         const bytesCalldata = calldata.substring(0, indexComma);
         const arrCalldata = calldata.substring(indexComma + 1);
         const verifyCalldataScript = spawn('bash', ['/home/ubuntu/workspace/hawkeye/api/zk-age-constraint/scripts/verify_calldata.sh', chain, bytesCalldata, arrCalldata, contractAddress]);
         verifyCalldataScript.stdout.on('data', (data) => {
-          logger.info("ankit3");
           logger.info("data");
           const success = (String(data.toString()).trim()) === 'true';
           logger.info(success);
           if (success) {
-            logger.info("ankit4");
             fn({
               success,
               calldata,
@@ -237,7 +239,6 @@ class UserService {
               contractAddress
             })
           } else {
-            logger.info("ankit5");
             fn({success})
           }
         });

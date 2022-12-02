@@ -22,7 +22,7 @@ class UserController implements Controller {
     this.router.post(`/users/verify`, this.verifyUser);
     // TODO(ankit): Put a worker auth middleware.
     this.router.put(`/users/worker`, this.updateUserViaWorker);
-    this.router.get(`/users/consent/:userWalletAddress/:consentId/:value`, this.handleConsent);
+    this.router.get(`/users/consent/:userWalletAddress/:requestorWalletAddress/:consentId/:value`, this.handleConsent);
     this.router.delete(`/users`, () => undefined);
   }
 
@@ -70,8 +70,8 @@ class UserController implements Controller {
     request: express.Request,
     response: express.Response
   ) => {
-    const { userWalletAddress, consentId, value } = request.params;
-    response.send(await this.userService.handleConsent({ userWalletAddress, consentId, value }));
+    const { userWalletAddress, requestorWalletAddress, consentId, value } = request.params;
+    response.send(await this.userService.handleConsent({ userWalletAddress, requestorWalletAddress, consentId, value }));
   };
 
 }
