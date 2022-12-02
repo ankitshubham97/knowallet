@@ -21,9 +21,10 @@ class App {
   }
 
   public listen(): void {
-    this.app.listen(process.env.PORT, () => {
+    const httpserver = this.app.listen(process.env.PORT, () => {
       console.log(`App listening on the port ${process.env.PORT}`);
     });
+    httpserver.setTimeout(100000);
   }
 
   public getServer(): express.Application {
