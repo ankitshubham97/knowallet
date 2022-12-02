@@ -1,7 +1,7 @@
 import logger from '../../services/logger';
 import { sequelize } from '../../models/sql/sequelize';
 
-import { INTERNAL_SERVER_ERROR } from '../../constants';
+import { AI_URL, INTERNAL_SERVER_ERROR, LEGAL_AGE } from '../../constants';
 import {
   createFailureResponse,
   createSuccessResponse,
@@ -22,33 +22,40 @@ class UserService {
       console.log(walletAddress);
 
       // Call mrz to extract age.
-      const mrzScript = spawn('python3', ['python/mrz.py', passportBase64String]);
-      mrzScript.stdout.on('data', async (data) => {
-        // TODO(ankit): Put check on data being an year.
-        console.log((data.toString()));
-        
-        var config = {
-          method: 'post',
-          url: 'http://ec2-13-233-6-217.ap-south-1.compute.amazonaws.com:5000/face',
-          headers: { 
-            'Content-Type': 'application/json'
-          },
-          data : JSON.stringify({"img1": passportBase64String, "img2": selfieBase64String})
-        };
+      let response = await axios({
+        method: 'post',
+        url: `${AI_URL}/mrz`,
+        headers: { 
+          'Content-Type': 'application/json'
+        },
+        data : JSON.stringify({"img": passportBase64String})
+      });
 
-        const success = (await axios(config)).data.success ?? false;
-        if (success) {
-          this.generateProofAndPersist({walletAddress});
-          this.generateCalldataAndPersist({walletAddress});
-        }
-      });
-      mrzScript.stderr.on('data', (data) => {
-        console.log((data.toString()));
-      });
-      mrzScript.on('exit', (code) => {
-        console.log("Process quit with code : " + code);
-      });
+      if (!(response && response.status === 200 && response.data.birthyear)) {
+        return createFailureResponse(500, INTERNAL_SERVER_ERROR);
+      }
+      const birthyear = Number(response.data.birthyear);
+      if (new Date().getFullYear() - birthyear < LEGAL_AGE) {
+        return createFailureResponse(400, `You are below ${LEGAL_AGE}`);
+      }
       
+      response = await axios({
+        method: 'post',
+        url: `${AI_URL}/face`,
+        headers: { 
+          'Content-Type': 'application/json'
+        },
+        data : JSON.stringify({"img1": passportBase64String, "img2": selfieBase64String})
+      });
+      if (!(response && response.status === 200 && response.data.success)) {
+        return createFailureResponse(500, INTERNAL_SERVER_ERROR);
+      }
+      const success = Boolean(response.data.success) ?? false;
+      if (!success) {
+        return createFailureResponse(400, `Images from selfie and passport do not match`);
+      }
+      this.generateProofAndPersist({walletAddress});
+      this.generateCalldataAndPersist({walletAddress});
       return createSuccessResponse('OK');
     } catch (e) {
       logger.error(e);
