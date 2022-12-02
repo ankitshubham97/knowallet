@@ -10,6 +10,9 @@ class VerifyUserDto {
 
   @IsNumber()
   questionId!: number;
+
+  @IsString()
+  chain!: string;
 }
 
 export default VerifyUserDto;
