@@ -1,4 +1,4 @@
-cd /home/ubuntu/workspace/api/zk-age-constraint/circuit_js
+cd /home/ubuntu/workspace/hawkeye/api/zk-age-constraint/circuit_js
 node generate_witness.js circuit.wasm ../input.json ../witness.wtns
 cd ../
 ./node_modules/.bin/snarkjs plonk prove circuit_final.zkey witness.wtns proof.json public.json

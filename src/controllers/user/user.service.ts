@@ -38,7 +38,7 @@ class UserService {
       if (new Date().getFullYear() - birthyear < LEGAL_AGE) {
         return createFailureResponse(400, `You are below ${LEGAL_AGE}`);
       }
-      
+      console.log("dbaqsfhbiasuhgb");
       response = await axios({
         method: 'post',
         url: `${AI_URL}/face`,
@@ -47,15 +47,17 @@ class UserService {
         },
         data : JSON.stringify({"img1": passportBase64String, "img2": selfieBase64String})
       });
-      if (!(response && response.status === 200 && response.data.success)) {
-        return createFailureResponse(500, INTERNAL_SERVER_ERROR);
+      console.log(response.status)
+      console.log(response.data);
+      if (!(response && response.status === 200)) {
+        return createFailureResponse(400, INTERNAL_SERVER_ERROR);
       }
       const success = Boolean(response.data.success) ?? false;
       if (!success) {
         return createFailureResponse(400, `Images from selfie and passport do not match`);
       }
-      this.generateProofAndPersist({walletAddress});
-      this.generateCalldataAndPersist({walletAddress});
+      // this.generateProofAndPersist({walletAddress});
+      // this.generateCalldataAndPersist({walletAddress});
       return createSuccessResponse('OK');
     } catch (e) {
       logger.error(e);
@@ -81,81 +83,81 @@ class UserService {
     this.verifyCalldata({walletAddress}, fn);
   }
 
-  private generateProofAndPersist({walletAddress}: {walletAddress: string}) {
-    const genProofScript = spawn('bash', ['/home/ubuntu/workspace/api/zk-age-constraint/scripts/generate_proof.sh']);
-    genProofScript.stdout.on('data', (data) => {
-      const proof = String(data.toString()).trim();
-      console.log(proof, walletAddress);
-      // @ts-ignore
-      this.userRepository.findOne({
-        where: {
-          walletAddress
-        }
-      }).then( walletEntry => {
-        if (!walletEntry) {
-          // @ts-ignore
-          this.userRepository.create ({
-            walletAddress,
-            proof
-          });
-        } else {
-          // @ts-ignore
-          this.userRepository.update({
-            proof,
-          },
-          {
-            where: {
-              walletAddress
-            },
-          })
-        }
-      })
-    });
-    genProofScript.stderr.on('data', (data) => {
-      console.log((data.toString()));
-    });
-    genProofScript.on('exit', (code) => {
-      console.log("Process quit with code : " + code);
-    });
-  }
+  // private generateProofAndPersist({walletAddress}: {walletAddress: string}) {
+  //   const genProofScript = spawn('bash', ['/home/ubuntu/workspace/api/zk-age-constraint/scripts/generate_proof.sh']);
+  //   genProofScript.stdout.on('data', (data) => {
+  //     const proof = String(data.toString()).trim();
+  //     console.log(proof, walletAddress);
+  //     // @ts-ignore
+  //     this.userRepository.findOne({
+  //       where: {
+  //         walletAddress
+  //       }
+  //     }).then( walletEntry => {
+  //       if (!walletEntry) {
+  //         // @ts-ignore
+  //         this.userRepository.create ({
+  //           walletAddress,
+  //           proof
+  //         });
+  //       } else {
+  //         // @ts-ignore
+  //         this.userRepository.update({
+  //           proof,
+  //         },
+  //         {
+  //           where: {
+  //             walletAddress
+  //           },
+  //         })
+  //       }
+  //     })
+  //   });
+  //   genProofScript.stderr.on('data', (data) => {
+  //     console.log((data.toString()));
+  //   });
+  //   genProofScript.on('exit', (code) => {
+  //     console.log("Process quit with code : " + code);
+  //   });
+  // }
 
-  private generateCalldataAndPersist({walletAddress}: {walletAddress: string}) {
-    const genCalldataScript = spawn('bash', ['/home/ubuntu/workspace/api/zk-age-constraint/scripts/generate_calldata.sh']);
-    genCalldataScript.stdout.on('data', (data) => {
-      const calldata = String(data.toString()).trim();
-      console.log(calldata, walletAddress);
-      // @ts-ignore
-      this.userRepository.findOne({
-        where: {
-          walletAddress
-        }
-      }).then( walletEntry => {
-        if (!walletEntry) {
-          // @ts-ignore
-          this.userRepository.create ({
-            walletAddress,
-            calldata
-          });
-        } else {
-          // @ts-ignore
-          this.userRepository.update({
-            calldata,
-          },
-          {
-            where: {
-              walletAddress
-            },
-          })
-        }
-      })
-    });
-    genCalldataScript.stderr.on('data', (data) => {
-      console.log((data.toString()));
-    });
-    genCalldataScript.on('exit', (code) => {
-      console.log("Process quit with code : " + code);
-    });
-  }
+  // private generateCalldataAndPersist({walletAddress}: {walletAddress: string}) {
+  //   const genCalldataScript = spawn('bash', ['/home/ubuntu/workspace/api/zk-age-constraint/scripts/generate_calldata.sh']);
+  //   genCalldataScript.stdout.on('data', (data) => {
+  //     const calldata = String(data.toString()).trim();
+  //     console.log(calldata, walletAddress);
+  //     // @ts-ignore
+  //     this.userRepository.findOne({
+  //       where: {
+  //         walletAddress
+  //       }
+  //     }).then( walletEntry => {
+  //       if (!walletEntry) {
+  //         // @ts-ignore
+  //         this.userRepository.create ({
+  //           walletAddress,
+  //           calldata
+  //         });
+  //       } else {
+  //         // @ts-ignore
+  //         this.userRepository.update({
+  //           calldata,
+  //         },
+  //         {
+  //           where: {
+  //             walletAddress
+  //           },
+  //         })
+  //       }
+  //     })
+  //   });
+  //   genCalldataScript.stderr.on('data', (data) => {
+  //     console.log((data.toString()));
+  //   });
+  //   genCalldataScript.on('exit', (code) => {
+  //     console.log("Process quit with code : " + code);
+  //   });
+  // }
 
 
   private verifyCalldata({walletAddress}: {walletAddress: string}, fn: (data: VerifyUserResponse) => void) {
