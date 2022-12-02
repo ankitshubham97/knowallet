@@ -176,7 +176,7 @@ class UserService {
         const indexComma = calldata.indexOf(",");
         const bytesCalldata = calldata.substring(0, indexComma);
         const arrCalldata = calldata.substring(indexComma + 1);
-        const verifyCalldataScript = spawn('bash', ['/home/ubuntu/workspace/api/zk-age-constraint/scripts/verify_calldata.sh', bytesCalldata, arrCalldata]);
+        const verifyCalldataScript = spawn('bash', ['/home/ubuntu/workspace/api/zk-age-constraint/scripts/verify_calldata.sh', "0xf62e08643635C0e0755CE5A894fDaEEEF72f8F00", bytesCalldata, arrCalldata, "matic"]);
         verifyCalldataScript.stdout.on('data', (data) => {
           const success = (String(data.toString()).trim()) === 'true';
           if (success) {
