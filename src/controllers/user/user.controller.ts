@@ -13,7 +13,7 @@ class UserController implements Controller {
 
   private initializeRoutes() {
     this.router.get(`/users`, () => undefined);
-    this.router.get(`/users/:userId`, () => undefined);
+    this.router.get(`/users/:walletAddress`, this.getUserByWalletAddress);
     this.router.post(`/users`, this.createOrUpdateUser);
     this.router.put(`/users`, () => undefined);
     this.router.delete(`/users`, () => undefined);
@@ -25,6 +25,14 @@ class UserController implements Controller {
   ) => {
     const payload = request.body as CreateOrUpdateUserDto;
     response.send(await this.userService.createOrUpdateUser({ payload }));
+  };
+
+  private getUserByWalletAddress = async (
+    request: express.Request,
+    response: express.Response
+  ) => {
+    const { walletAddress } = request.params;
+    response.send(await this.userService.getUserByWalletAddress({ walletAddress }));
   };
 }
 

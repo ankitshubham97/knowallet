@@ -13,13 +13,13 @@ module.exports = {
         type: Sequelize.STRING,
         allowNull: false,
       },
-      ageZkScAddress: {
-        type: Sequelize.STRING,
-        allowNull: false,
+      proof: {
+        type: Sequelize.STRING(32768),
+        allowNull: true,
       },
-      verified: {
-        type: Sequelize.BOOLEAN,
-        defaultValue: true,
+      calldata: {
+        type: Sequelize.STRING(32768),
+        allowNull: true,
       },
       createdAt: {
         allowNull: false,

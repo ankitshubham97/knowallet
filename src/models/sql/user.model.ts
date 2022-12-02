@@ -12,10 +12,10 @@ class User extends Model<User> {
   walletAddress!: string;
 
   @Column
-  selfieBase64String!: string;
+  proof!: string;
 
   @Column
-  passportBase64String!: string;
+  calldata!: string;
 
   @Column
   @CreatedAt
