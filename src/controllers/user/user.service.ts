@@ -18,6 +18,7 @@ import Queue, { AWSQueue, QUEUE_GROUPS } from '../../services/queue';
 import QueueMessage from '../../interfaces/queueMessage.interface';
 import Consent from '../../models/sql/consent.model';
 import { sendNotification } from '../../utils/sendPush';
+// import { uploadToIpfs } from '../../utils/secureIpfs';
 
 class UserService {
   public userRepository = sequelize.getRepository(User);
@@ -117,6 +118,7 @@ class UserService {
   }
 
   public async getUserByWalletAddress({ walletAddress }: { walletAddress: string }) {
+    // await uploadToIpfs({data: 'sample data2', filename: walletAddress});
     // @ts-ignore
     const user = await this.userRepository.findOne({
       where: {

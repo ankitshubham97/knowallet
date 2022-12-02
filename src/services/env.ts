@@ -17,6 +17,9 @@ export type EnvVariables = {
   AWS_REGION: string;
   PRIVATE_KEY: string;
   PUBLIC_KEY: string;
+  CHAINSAFE_KEY_ID: string;
+  CHAINSAFE_KEY_SECRET: string;
+  CHAINSAFE_BUCKET_URL: string;
 };
 
 class EnvService implements AbstractService {
@@ -36,6 +39,9 @@ class EnvService implements AbstractService {
     AWS_REGION: str(),
     PRIVATE_KEY: str(),
     PUBLIC_KEY: str(),
+    CHAINSAFE_KEY_ID: str(),
+    CHAINSAFE_KEY_SECRET: str(),
+    CHAINSAFE_BUCKET_URL: str(),
   };
 
   static envs: Readonly<EnvVariables>;
