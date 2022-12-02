@@ -3,4 +3,5 @@ export default interface VerifyUserResponse {
   calldata?: string;
   network?: string;
   contractAddress?: string;
+  errMsg?: string;
 }

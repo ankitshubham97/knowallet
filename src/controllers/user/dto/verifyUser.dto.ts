@@ -6,7 +6,11 @@ import {
 class VerifyUserDto {
   @IsNotEmpty()
   @IsString()
-  walletAddress!: string;
+  userWalletAddress!: string;
+
+  @IsNotEmpty()
+  @IsString()
+  requestorWalletAddress!: string;
 
   @IsNumber()
   questionId!: number;

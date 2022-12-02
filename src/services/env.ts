@@ -15,6 +15,8 @@ export type EnvVariables = {
   AWS_SECRET: string;
   AWS_QUEUE: string;
   AWS_REGION: string;
+  PRIVATE_KEY: string;
+  PUBLIC_KEY: string;
 };
 
 class EnvService implements AbstractService {
@@ -31,7 +33,9 @@ class EnvService implements AbstractService {
     AWS_KEY: str(),
     AWS_SECRET: str(),
     AWS_QUEUE: str(),
-    AWS_REGION: str()
+    AWS_REGION: str(),
+    PRIVATE_KEY: str(),
+    PUBLIC_KEY: str(),
   };
 
   static envs: Readonly<EnvVariables>;
