@@ -1,7 +1,7 @@
 import logger from '../../services/logger';
 import { sequelize } from '../../models/sql/sequelize';
 
-import { AI_URL, INTERNAL_SERVER_ERROR, LEGAL_AGE } from '../../constants';
+import { AI_URL, CHAIN_SC_MAP, INTERNAL_SERVER_ERROR, LEGAL_AGE } from '../../constants';
 import {
   createFailureResponse,
   createSuccessResponse,
@@ -79,12 +79,13 @@ class UserService {
   }
 
   public async verifyUser({ payload }: {payload: VerifyUserDto}, fn: (data: any) => void ) {
-    const { walletAddress } = payload;
-    this.verifyCalldata({walletAddress}, fn);
+    const { walletAddress, chain } = payload;
+    const contractAddress = CHAIN_SC_MAP.get(chain) ?? '';
+    this.verifyCalldata({walletAddress, chain, contractAddress}, fn);
   }
 
   // private generateProofAndPersist({walletAddress}: {walletAddress: string}) {
-  //   const genProofScript = spawn('bash', ['/home/ubuntu/workspace/api/zk-age-constraint/scripts/generate_proof.sh']);
+  //   const genProofScript = spawn('bash', ['/home/ubuntu/workspace/hawkeye/api/zk-age-constraint/scripts/generate_proof.sh']);
   //   genProofScript.stdout.on('data', (data) => {
   //     const proof = String(data.toString()).trim();
   //     console.log(proof, walletAddress);
@@ -122,7 +123,7 @@ class UserService {
   // }
 
   // private generateCalldataAndPersist({walletAddress}: {walletAddress: string}) {
-  //   const genCalldataScript = spawn('bash', ['/home/ubuntu/workspace/api/zk-age-constraint/scripts/generate_calldata.sh']);
+  //   const genCalldataScript = spawn('bash', ['/home/ubuntu/workspace/hawkeye/api/zk-age-constraint/scripts/generate_calldata.sh']);
   //   genCalldataScript.stdout.on('data', (data) => {
   //     const calldata = String(data.toString()).trim();
   //     console.log(calldata, walletAddress);
@@ -160,7 +161,7 @@ class UserService {
   // }
 
 
-  private verifyCalldata({walletAddress}: {walletAddress: string}, fn: (data: VerifyUserResponse) => void) {
+  private verifyCalldata({walletAddress, chain, contractAddress}: {walletAddress: string, chain: string, contractAddress: string}, fn: (data: VerifyUserResponse) => void) {
     console.log(walletAddress);
     // @ts-ignore
     this.userRepository.findOne({
@@ -176,15 +177,15 @@ class UserService {
         const indexComma = calldata.indexOf(",");
         const bytesCalldata = calldata.substring(0, indexComma);
         const arrCalldata = calldata.substring(indexComma + 1);
-        const verifyCalldataScript = spawn('bash', ['/home/ubuntu/workspace/api/zk-age-constraint/scripts/verify_calldata.sh', "0xf62e08643635C0e0755CE5A894fDaEEEF72f8F00", bytesCalldata, arrCalldata, "matic"]);
+        const verifyCalldataScript = spawn('bash', ['/home/ubuntu/workspace/hawkeye/api/zk-age-constraint/scripts/verify_calldata.sh', chain, bytesCalldata, arrCalldata, contractAddress]);
         verifyCalldataScript.stdout.on('data', (data) => {
           const success = (String(data.toString()).trim()) === 'true';
           if (success) {
             fn({
               success,
               calldata,
-              network: 'matic-mumbai',
-              contractAddress: '0xf62e08643635C0e0755CE5A894fDaEEEF72f8F00'
+              network: chain,
+              contractAddress
             })
           } else {
             fn({success})
