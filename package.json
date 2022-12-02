@@ -110,6 +110,7 @@
     "node-schedule": "^2.1.0",
     "pg": "^8.8.0",
     "reflect-metadata": "^0.1.13",
+    "revise-sdk": "^0.2.0",
     "sequelize": "^6.25.8",
     "sequelize-typescript": "^2.1.5",
     "shelljs": "^0.8.5",
