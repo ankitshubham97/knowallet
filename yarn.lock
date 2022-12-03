@@ -23,12 +23,12 @@
     chalk "^2.0.0"
     js-tokens "^4.0.0"
 
-"@babel/runtime@7.19.4":
-  version "7.19.4"
-  resolved "https://registry.yarnpkg.com/@babel/runtime/-/runtime-7.19.4.tgz#a42f814502ee467d55b38dd1c256f53a7b885c78"
-  integrity sha512-EXpLCrk55f+cYqmHsSR+yD/0gAIMxxA9QK9lnQWzhMCvt+YmoBN7Zx94s++Kv0+unHk39vxNO8t+CMA2WSS3wA==
+"@babel/runtime@7.20.6":
+  version "7.20.6"
+  resolved "https://registry.yarnpkg.com/@babel/runtime/-/runtime-7.20.6.tgz#facf4879bfed9b5326326273a64220f099b0fce3"
+  integrity sha512-Q+8MqP7TiHMWzSfwiJwXCjyf4GYA4Dgw3emg/7xmwsdLJOZUp+nMqcOwOzzYheuM1rhDu8FSj2l0aoMygEuXuA==
   dependencies:
-    regenerator-runtime "^0.13.4"
+    regenerator-runtime "^0.13.11"
 
 "@colors/colors@1.5.0":
   version "1.5.0"
@@ -2365,11 +2365,11 @@ etag@~1.8.1:
   integrity sha512-aIL5Fx7mawVa300al2BnEE4iNvo1qETxLrPI/o05L7z6go7fCw1J6EQmbK4FmJ2AS7kgVF/KEZWufBfdClMcPg==
 
 eth-crypto@^2.4.0:
-  version "2.4.0"
-  resolved "https://registry.yarnpkg.com/eth-crypto/-/eth-crypto-2.4.0.tgz#c89493180dff44bcbc7a2db94b9174ab09d786bc"
-  integrity sha512-GDtZVtSJZUv0rqZujJT+EaG+3Uf7H0I9yoOzrJHSkMHB0pJv+pf5TaDyPXsfGwwTvPyGnwszf23JPWrxauwNPw==
+  version "2.5.0"
+  resolved "https://registry.yarnpkg.com/eth-crypto/-/eth-crypto-2.5.0.tgz#3ed7279a3a77bcca499266d4eb33ba2a8bd3004b"
+  integrity sha512-5WA3ebUs38ssNtU/U9FPzehFZnkdAwAFXq+bPF2Fcp4izV+A7bjW6489N8AB7fiQgHi1XkfnTcO64189SJil5A==
   dependencies:
-    "@babel/runtime" "7.19.4"
+    "@babel/runtime" "7.20.6"
     "@ethereumjs/tx" "3.5.2"
     "@types/bn.js" "5.1.1"
     eccrypto "1.1.6"
@@ -4185,7 +4185,7 @@ reflect-metadata@^0.1.13:
   resolved "https://registry.yarnpkg.com/reflect-metadata/-/reflect-metadata-0.1.13.tgz#67ae3ca57c972a2aa1642b10fe363fe32d49dc08"
   integrity sha512-Ts1Y/anZELhSsjMcU605fU9RE4Oi3p5ORujwbIKXfWa+0Zxs510Qrmrce5/Jowq3cHSZSJqBjypxmHarc+vEWg==
 
-regenerator-runtime@^0.13.4:
+regenerator-runtime@^0.13.11:
   version "0.13.11"
   resolved "https://registry.yarnpkg.com/regenerator-runtime/-/regenerator-runtime-0.13.11.tgz#f6dca3e7ceec20590d07ada785636a90cdca17f9"
   integrity sha512-kY1AZVr2Ra+t+piVaJ4gxaFaReZVH40AKNo7UCX6W+dEwBo/2oZJzqfuN1qLq1oL45o56cPaTXELwrTh8Fpggg==
