@@ -12,10 +12,16 @@ class User extends Model<User> {
   walletAddress!: string;
 
   @Column
-  proof!: string;
+  proofAge!: string;
 
   @Column
-  calldata!: string;
+  calldataAge!: string;
+
+  @Column
+  proofCountry!: string;
+
+  @Column
+  calldataCountry!: string;
 
   @Column
   @CreatedAt

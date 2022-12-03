@@ -1,0 +1,40 @@
+{
+  "_format": "hh-sol-cache-2",
+  "files": {
+    "/home/ubuntu/workspace/hawkeye/api/zk-country-constraint/auto_deploy/contracts/verifier.sol": {
+      "lastModificationDate": 1670083586381,
+      "contentHash": "8a1eda70c0b527ef48da7a6e159c3ba2",
+      "sourceName": "contracts/verifier.sol",
+      "solcConfig": {
+        "version": "0.7.3",
+        "settings": {
+          "optimizer": {
+            "enabled": false,
+            "runs": 200
+          },
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers",
+                "metadata"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          }
+        }
+      },
+      "imports": [],
+      "versionPragmas": [
+        ">=0.7.0 <0.9.0"
+      ],
+      "artifacts": [
+        "PlonkVerifier"
+      ]
+    }
+  }
+}

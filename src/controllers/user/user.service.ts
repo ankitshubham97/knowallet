@@ -27,16 +27,32 @@ class UserService {
   
   public async updateUser({ payload }: { payload: any }) {
     try {
-      // @ts-ignore
-      await this.userRepository.update({
-        proof: payload.proof ?? '',
-        calldata: payload.calldata ?? '',
-      },
-      {
-        where: {
-          walletAddress: payload.walletAddress ?? '',
+      const { callType } = payload;
+      if (callType === 'gen-proof-country') {
+        // @ts-ignore
+        await this.userRepository.update({
+          proofCountry: payload.proof ?? '',
+          calldataCountry: payload.calldata ?? '',
         },
-      });
+        {
+          where: {
+            walletAddress: payload.walletAddress ?? '',
+          },
+        });
+      } else if (callType === 'gen-proof-age') {
+        // @ts-ignore
+        await this.userRepository.update({
+          proofAge: payload.proof ?? '',
+          calldataAge: payload.calldata ?? '',
+        },
+        {
+          where: {
+            walletAddress: payload.walletAddress ?? '',
+          },
+        });
+      } else {
+        return createFailureResponse(500, INTERNAL_SERVER_ERROR);
+      }
       return createSuccessResponse(payload);
     } catch (e) {
       logger.error(e);
@@ -105,10 +121,25 @@ class UserService {
         QUEUE_GROUPS.BASHER,
         'basher',
         {
-          callType: 'gen-proof',
+          callType: 'gen-proof-age',
           inputData: JSON.stringify({
             age,
             ageLimit: 18,
+          }),
+          ts: Date.now(),
+          walletAddress
+        }
+      );
+
+      await this.queueService.enqueueTypedMessage<QueueMessage>(
+        walletAddress,
+        QUEUE_GROUPS.BASHER,
+        'basher',
+        {
+          callType: 'gen-proof-country',
+          inputData: JSON.stringify({
+            "countries" : [123, 456, 789, 1112, 135],
+            "country": 45
           }),
           ts: Date.now(),
           walletAddress
@@ -136,7 +167,7 @@ class UserService {
   }
 
   public async verifyUser({ payload }: {payload: VerifyUserDto}, fn: (data: any) => void ) {
-    const { userWalletAddress, requestorWalletAddress, chain } = payload;
+    const { userWalletAddress, requestorWalletAddress, chain, questionId } = payload;
     const contractAddress = CHAIN_SC_MAP.get(chain) ?? '';
     const user = await this.userRepository.findOne({
       where: {
@@ -174,7 +205,7 @@ class UserService {
       return;
     }
     logger.info('calling verifyCalldata...')
-    this.verifyCalldata({userWalletAddress, chain, contractAddress}, fn);
+    this.verifyCalldata({userWalletAddress, chain, contractAddress, questionId}, fn);
   }
 
   public async handleConsent({ userWalletAddress, requestorWalletAddress, consentId, value }: { userWalletAddress: string, requestorWalletAddress: string, consentId: string, value: string }) {
@@ -210,7 +241,7 @@ class UserService {
     return createSuccessResponse('OK');
   }
 
-  private verifyCalldata({userWalletAddress, chain, contractAddress}: {userWalletAddress: string, chain: string, contractAddress: string}, fn: (data: VerifyUserResponse) => void) {
+  private verifyCalldata({userWalletAddress, chain, contractAddress, questionId}: {userWalletAddress: string, chain: string, contractAddress: string, questionId: number}, fn: (data: VerifyUserResponse) => void) {
     console.log(userWalletAddress);
     // @ts-ignore
     this.userRepository.findOne({
@@ -218,36 +249,72 @@ class UserService {
         walletAddress: userWalletAddress
       }
     }).then( walletEntry => {
-      if (!walletEntry || !(walletEntry.calldata) || walletEntry.calldata.length === 0) {
-        console.log('could not find the address');
-        fn({success:false, errMsg: 'Could not find the address'});
+      if (questionId === 1) {
+        if (!walletEntry || !(walletEntry.calldataAge) || walletEntry.calldataAge.length === 0) {
+          console.log('could not find the address');
+          fn({success:false, errMsg: 'Could not find the address'});
+        } else {
+          const calldata = walletEntry.calldataAge;
+          const indexComma = calldata.indexOf(",");
+          const bytesCalldata = calldata.substring(0, indexComma);
+          const arrCalldata = calldata.substring(indexComma + 1);
+          const verifyCalldataScript = spawn('bash', ['/home/ubuntu/workspace/hawkeye/api/zk-age-constraint/scripts/verify_calldata.sh', chain, bytesCalldata, arrCalldata, contractAddress]);
+          verifyCalldataScript.stdout.on('data', (data) => {
+            logger.info("data");
+            const success = (String(data.toString()).trim()) === 'true';
+            logger.info(success);
+            if (success) {
+              fn({
+                success,
+                calldata,
+                network: chain,
+                contractAddress
+              })
+            } else {
+              fn({success})
+            }
+          });
+          verifyCalldataScript.stderr.on('data', (data) => {
+            console.log((data.toString()));
+          });
+          verifyCalldataScript.on('exit', (code) => {
+            console.log("Process quit with code : " + code);
+          });
+        }
+      } else if (questionId === 2) {
+        if (!walletEntry || !(walletEntry.calldataCountry) || walletEntry.calldataCountry.length === 0) {
+          console.log('could not find the address');
+          fn({success:false, errMsg: 'Could not find the address'});
+        } else {
+          const calldata = walletEntry.calldataCountry;
+          const indexComma = calldata.indexOf(",");
+          const bytesCalldata = calldata.substring(0, indexComma);
+          const arrCalldata = calldata.substring(indexComma + 1);
+          const verifyCalldataScript = spawn('bash', ['/home/ubuntu/workspace/hawkeye/api/zk-country-constraint/scripts/verify_calldata.sh', chain, bytesCalldata, arrCalldata, contractAddress]);
+          verifyCalldataScript.stdout.on('data', (data) => {
+            logger.info("data");
+            const success = (String(data.toString()).trim()) === 'true';
+            logger.info(success);
+            if (success) {
+              fn({
+                success,
+                calldata,
+                network: chain,
+                contractAddress
+              })
+            } else {
+              fn({success})
+            }
+          });
+          verifyCalldataScript.stderr.on('data', (data) => {
+            console.log((data.toString()));
+          });
+          verifyCalldataScript.on('exit', (code) => {
+            console.log("Process quit with code : " + code);
+          });
+        }
       } else {
-        const calldata = walletEntry.calldata;
-        const indexComma = calldata.indexOf(",");
-        const bytesCalldata = calldata.substring(0, indexComma);
-        const arrCalldata = calldata.substring(indexComma + 1);
-        const verifyCalldataScript = spawn('bash', ['/home/ubuntu/workspace/hawkeye/api/zk-age-constraint/scripts/verify_calldata.sh', chain, bytesCalldata, arrCalldata, contractAddress]);
-        verifyCalldataScript.stdout.on('data', (data) => {
-          logger.info("data");
-          const success = (String(data.toString()).trim()) === 'true';
-          logger.info(success);
-          if (success) {
-            fn({
-              success,
-              calldata,
-              network: chain,
-              contractAddress
-            })
-          } else {
-            fn({success})
-          }
-        });
-        verifyCalldataScript.stderr.on('data', (data) => {
-          console.log((data.toString()));
-        });
-        verifyCalldataScript.on('exit', (code) => {
-          console.log("Process quit with code : " + code);
-        });
+        fn({success:false, errMsg: `Invalid question id ${questionId}`});
       }
     })
   }
