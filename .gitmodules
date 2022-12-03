@@ -1,3 +1,6 @@
 [submodule "ui2"]
 	path = ui2
 	url = git@github.com:ankitshubham97/knowallet-ui.git
+[submodule "ai"]
+	path = ai
+	url = git@github.com:ankitshubham97/knowallet-ai.git
