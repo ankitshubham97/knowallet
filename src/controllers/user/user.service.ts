@@ -1,7 +1,7 @@
 import logger from '../../services/logger';
 import { sequelize } from '../../models/sql/sequelize';
 
-import { AI_URL, CHAIN_SC_MAP, INTERNAL_SERVER_ERROR, LEGAL_AGE, SANCTIONED_COUNTRIES } from '../../constants';
+import { AI_URL, CHAIN_SC_MAP_AGE, CHAIN_SC_MAP_COUNTRY, INTERNAL_SERVER_ERROR, LEGAL_AGE, SANCTIONED_COUNTRIES } from '../../constants';
 import {
   createFailureResponse,
   createSuccessResponse,
@@ -168,7 +168,15 @@ class UserService {
 
   public async verifyUser({ payload }: {payload: VerifyUserDto}, fn: (data: any) => void ) {
     const { userWalletAddress, requestorWalletAddress, chain, questionId } = payload;
-    const contractAddress = CHAIN_SC_MAP.get(chain) ?? '';
+    let contractAddress = '';
+    if (questionId === 1) {
+      contractAddress = CHAIN_SC_MAP_AGE.get(chain) ?? '';
+    } else if (questionId === 2) {
+      contractAddress = CHAIN_SC_MAP_COUNTRY.get(chain) ?? '';
+    } else {
+      fn({success:false, errMsg: `Invalid question id ${questionId}.`});
+      return;
+    }
     const user = await this.userRepository.findOne({
       where: {
         walletAddress: userWalletAddress,
