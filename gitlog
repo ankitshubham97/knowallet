@@ -1,0 +1,137 @@
+commit b527baf6ad96e1c61ef2fa1228a04f429fcd4795
+Author: Ubuntu <ubuntu@ip-172-31-36-116.ap-south-1.compute.internal>
+Date:   Sat Dec 3 01:58:16 2022 +0530
+
+    feat: integrate revise
+
+commit 3305682ee102b0b8aef44a55f1acb07d8e4152a1
+Author: Ubuntu <ubuntu@ip-172-31-36-116.ap-south-1.compute.internal>
+Date:   Sat Dec 3 17:23:16 2022 +0000
+
+    fix: double entry consent
+
+commit f5fabd3a0070a99ff9a40a0b44799c8d759a0c8b
+Author: Ubuntu <ubuntu@ip-172-31-36-116.ap-south-1.compute.internal>
+Date:   Sat Dec 3 17:09:41 2022 +0000
+
+    fix: zk-country on all chains
+
+commit 9ec698a586b30415b17797aa283c5ce5a4878c6e
+Author: Ubuntu <ubuntu@ip-172-31-36-116.ap-south-1.compute.internal>
+Date:   Sat Dec 3 16:59:23 2022 +0000
+
+    fix: zk country
+
+commit acefcaca6194ebbe822b2797db593fdd0ae25cc8
+Author: Ubuntu <ubuntu@ip-172-31-36-116.ap-south-1.compute.internal>
+Date:   Sat Dec 3 11:19:10 2022 +0000
+
+    feat: send requestor notif when consent is given
+
+commit 627dd3d805de6f08afa4924755270ad4e63226dd
+Author: Ubuntu <ubuntu@ip-172-31-36-116.ap-south-1.compute.internal>
+Date:   Sat Dec 3 11:03:44 2022 +0000
+
+    feat: add cronos and moonbeam
+
+commit 36f1017fc97e86131eae822e959649ec0ede1065
+Author: Ubuntu <ubuntu@ip-172-31-36-116.ap-south-1.compute.internal>
+Date:   Sat Dec 3 01:38:16 2022 +0530
+
+    fix: update SC
+
+commit e152f2a2b09d8da1d608039413f6f15ae77fe4f0
+Author: Ubuntu <ubuntu@ip-172-31-36-116.ap-south-1.compute.internal>
+Date:   Sat Dec 3 01:34:16 2022 +0530
+
+    feat: upload to ipfs
+
+commit f1b593ce4737004e1623daf596978ff2bf0d8ad0
+Author: Ubuntu <ubuntu@ip-172-31-36-116.ap-south-1.compute.internal>
+Date:   Sat Dec 3 01:09:16 2022 +0530
+
+    feat: push integrated
+
+commit 46f997a8311ad0fda0c325cfba32dbf3093363e3
+Author: Ubuntu <ubuntu@ip-172-31-36-116.ap-south-1.compute.internal>
+Date:   Sat Dec 3 01:01:16 2022 +0530
+
+    fix: working apis
+
+commit ddf67d0f95dc2c595ee02a2794a7557c5dd6dcde
+Author: Ubuntu <ubuntu@ip-172-31-36-116.ap-south-1.compute.internal>
+Date:   Sat Dec 3 00:59:16 2022 +0530
+
+    fix: working verify after parameterization
+
+commit fcd2adb7612b587722f4128e899b0d133893da3c
+Author: Ubuntu <ubuntu@ip-172-31-36-116.ap-south-1.compute.internal>
+Date:   Sat Dec 3 00:51:16 2022 +0530
+
+    fix: parameterize verify_calldata
+
+commit 419dafe27a25f316af1c2994ac72ee4de294fa1c
+Author: Ubuntu <ubuntu@ip-172-31-36-116.ap-south-1.compute.internal>
+Date:   Sat Dec 3 00:51:16 2022 +0530
+
+    fix: CORS
+
+commit 0b3bb49950b32bce9360515bfcefbcb363371f9f
+Author: Ubuntu <ubuntu@ip-172-31-36-116.ap-south-1.compute.internal>
+Date:   Sat Dec 3 00:51:16 2022 +0530
+
+    fix: user service
+
+commit ef4f6fb941585cbfbdcc2ef922635b1a25530fd9
+Author: Ankit Shubham <ankitshubham97@gmail.com>
+Date:   Fri Dec 2 23:58:16 2022 +0530
+
+    fix: add zk folder
+
+commit 3e7fccca0d44bb97ca68baec9c954b15ddcfb029
+Author: Ankit Shubham <ankitshubham97@gmail.com>
+Date:   Fri Dec 2 23:52:16 2022 +0530
+
+    fix: rm zk folder
+
+commit 6f8b4d9eef8aeb735e2071c7a802255aeaab8d17
+Author: Ankit Shubham <ankitshubham97@gmail.com>
+Date:   Fri Dec 2 23:51:16 2022 +0530
+
+    fix: call ai endpoint
+
+commit 58c7013e980e6ede9a9b94aaf913478a9fe13b51
+Author: Ubuntu <ubuntu@ip-172-31-37-64.ap-south-1.compute.internal>
+Date:   Fri Dec 2 23:49:16 2022 +0530
+
+    fix: build instructions
+
+commit 43314492cc70c8009d6f293b3df1d2e1018b165a
+Author: Ubuntu <ubuntu@ip-172-31-37-64.ap-south-1.compute.internal>
+Date:   Fri Dec 2 23:47:11 2022 +0530
+
+    fix: CORS
+
+commit b9dbea2b0221ed3ae1be6ea26b4348bc152b09d7
+Author: Ubuntu <ubuntu@ip-172-31-37-64.ap-south-1.compute.internal>
+Date:   Fri Dec 2 23:39:44 2022 +0530
+
+    feat: verify kyc
+
+commit a5c883aefc4b20818e2ed6e1fb7af8f32e3bc9a8
+Author: Ubuntu <ubuntu@ip-172-31-37-64.ap-south-1.compute.internal>
+Date:   Fri Dec 2 23:37:21 2022 +0530
+
+    feat: generate proof and calldata and persist
+
+commit d2af7c7eae0f91eebdf2d98b3e8f07b7f5be6a72
+Author: Ubuntu <ubuntu@ip-172-31-37-64.ap-south-1.compute.internal>
+Date:   Fri Dec 2 23:35:16 2022 +0530
+
+    fix: sc
+
+commit 38573a9e7466f0bd751fa902526e40911229bfb2
+Author: Ubuntu <ubuntu@ip-172-31-37-64.ap-south-1.compute.internal>
+Date:   Fri Dec 2 22:26:02 2022 +0530
+
+    feat: first commit
