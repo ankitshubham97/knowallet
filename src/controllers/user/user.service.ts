@@ -192,7 +192,6 @@ class UserService {
       where: {
         userWalletAddress,
         requestorWalletAddress,
-        consent: true
       }
     });
     if (!consentEntry) {
@@ -210,6 +209,17 @@ class UserService {
         receiverAddress: userWalletAddress
       })
       fn({success:false, errMsg: 'User has not given the consent yet to verify their KYC details'});
+      return;
+    }
+    if (consentEntry && !(consentEntry.consent)) {
+      await sendNotification({
+        title: `A requestor is asking for your consent <${consentEntry.id}>!`,
+        body: `Binance (${requestorWalletAddress}) is asking for additional information. Approve now!`,
+        cta: `https://api.app.knowallet.xyz/users/consent/${userWalletAddress}/${requestorWalletAddress}/${consentEntry.id}/true`,
+        img: '',
+        receiverAddress: userWalletAddress
+      })
+      fn({success:false, errMsg: 'We have resent the consent notification. User has not given the consent yet to verify their KYC details'});
       return;
     }
     logger.info('calling verifyCalldata...')
