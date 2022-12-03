@@ -51,6 +51,14 @@ module.exports = {
       gnosis: {
          url: "https://rpc.chiadochain.net",
          accounts: [PRIVATE_KEY],
+      },
+      cronos: {
+         url: "https://evm-t3.cronos.org",
+         accounts: [PRIVATE_KEY],
+      },
+      moonbeam: {
+         url: "https://rpc.api.moonbase.moonbeam.network",
+         accounts: [PRIVATE_KEY],
       }
    },
 }
