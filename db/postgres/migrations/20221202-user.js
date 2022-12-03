@@ -13,11 +13,19 @@ module.exports = {
         type: Sequelize.STRING,
         allowNull: false,
       },
-      proof: {
+      proofAge: {
         type: Sequelize.STRING(32768),
         allowNull: true,
       },
-      calldata: {
+      calldataAge: {
+        type: Sequelize.STRING(32768),
+        allowNull: true,
+      },
+      proofCountry: {
+        type: Sequelize.STRING(32768),
+        allowNull: true,
+      },
+      calldataCountry: {
         type: Sequelize.STRING(32768),
         allowNull: true,
       },
